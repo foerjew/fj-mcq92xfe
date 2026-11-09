@@ -599,6 +599,7 @@ body.printing .policy{margin-top:10px}
         </div>
         <table class="docbox">
           <tr class="big"><td class="l">Date</td><td><input type="date" id="docDate"></td></tr>
+          <tr class="big"><td class="l">Repair #</td><td><input type="text" id="repairNo" placeholder="Enter #" inputmode="text"></td></tr>
           <tr><td class="l">Sales person</td><td><input type="text" id="salesPerson"></td></tr>
           <tr><td class="l">Layaway</td><td><input type="checkbox" id="tLayaway"></td></tr>
           <tr><td class="l">Repair</td><td><input type="checkbox" id="tRepair" checked></td></tr>
@@ -816,7 +817,7 @@ function calc(){
 }
 function totals(){const t=calc();$('tSub').textContent=money(t.sub);$('discRow').style.display=t.dp?'':'none';$('tDisc').textContent=money(-t.disc);$('tTax').textContent=money(t.tax);$('tTotal').textContent=money(t.total);$('tBal').textContent=money(t.bal)}
 
-const FIELDS=['rushPct','rushMin','payMethod','discPct','gDays','gPct','docDate','salesPerson','custName','custPhone','notes','warranty','taxRate','deposit'];
+const FIELDS=['repairNo','rushPct','rushMin','payMethod','discPct','gDays','gPct','docDate','salesPerson','custName','custPhone','notes','warranty','taxRate','deposit'];
 const CHECKS=['rushOn','gOn','tLayaway','tRepair','tSpecial'];
 function save(){
   const d={lines,uid,sig,sigDate};FIELDS.forEach(f=>d[f]=$(f).value);CHECKS.forEach(f=>d[f]=$(f).checked);store.set('fj_draft',d);
@@ -846,7 +847,7 @@ $('sigDone').onclick=()=>{const t=ink?trimmed():null;sig=t;if(t){const n=new Dat
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fresh(){
   lines=[];sig=null;sigDate='';showSig();$('docDate').value=today();
-  ['custName','custPhone','notes','warranty','payMethod'].forEach(f=>$(f).value='');$('discPct').value='2';$('deposit').value=0;$('taxRate').value='8.375';
+  ['repairNo','custName','custPhone','notes','warranty','payMethod'].forEach(f=>$(f).value='');$('discPct').value='2';$('deposit').value=0;$('taxRate').value='8.375';
   $('gOn').checked=false;$('rushOn').checked=false;$('tLayaway').checked=false;$('tRepair').checked=true;$('tSpecial').checked=false;renderLines();save();
 }
 function load(){
@@ -890,6 +891,7 @@ function buildPDF(k){
   };
   const dt=$('docDate').value;let dts='';if(dt){const [a,b,c]=dt.split('-');dts=(+b)+'/'+(+c)+'/'+a}
   boxRow('DATE',dts,26,true);
+  boxRow('REPAIR #',$('repairNo').value.trim(),22,true);
   boxRow('SALES PERSON',$('salesPerson').value,17);
   boxRow('LAYAWAY',$('tLayaway').checked?'X':'',17,false,true);
   boxRow('REPAIR',$('tRepair').checked?'X':'',17,false,true);
@@ -964,7 +966,7 @@ function buildOnePage(){let doc;for(let k=1;k>=0.5;k-=0.04){doc=buildPDF(k);if(d
 let dl=null;
 $('pdfBtn').onclick=async()=>{
   if(!window.jspdf){$('status').textContent='PDF tool still loading, try again.';return}
-  const doc=buildOnePage();const name=`Forever-Jewelers${$('custName').value?'-'+$('custName').value.replace(/[^\w]+/g,'_'):''}-${$('docDate').value||today()}.pdf`;
+  const doc=buildOnePage();const name=`Forever-Jewelers${$('repairNo').value.trim()?'-Repair-'+$('repairNo').value.trim().replace(/[^\w-]+/g,'_'):''}${$('custName').value?'-'+$('custName').value.replace(/[^\w]+/g,'_'):''}-${$('docDate').value||today()}.pdf`;
   if(dl){try{await dl.save({filename:name,data:doc.output('blob')});$('status').textContent='Saved: '+name}catch(e){$('status').textContent=e&&e.code==='declined'?'':'Could not save the PDF here.'}}
   else{doc.save(name);$('status').textContent='Saved: '+name}
 };
