@@ -544,7 +544,8 @@ body.noscroll{overflow:hidden}
   .bottom{grid-template-columns:1fr}
   .bottom .lg{display:none}
   .agree{flex-wrap:wrap}
-  .agree .s{flex-basis:100%}
+  .agree .s{flex:1;min-width:0}
+  .agree:has(.s){flex-wrap:nowrap;gap:10px}
   .qrs{flex-wrap:wrap;gap:14px}
   .qr img{width:70px;height:70px}
   .inv-actions .btn{padding:8px 10px}
@@ -652,7 +653,7 @@ body.printing .policy{margin-top:10px}
         <ul id="policyList"></ul>
       </div>
       <div class="agree"><span>I have read and understood the store policy and agree with it.</span></div>
-      <div class="agree"><span>Customer's signature:</span><span class="s"><img id="sigImg" alt="Customer signature" title="Tap to sign again"><button class="btn ghost sigbtn no-print" id="sigBtn">Tap to sign</button></span><span>Date:</span><span class="d" id="sigDate"></span></div>
+      <div class="agree"><span>Customer's signature:</span><span class="s"><img id="sigImg" alt="Customer signature" title="Tap to sign again"><button class="btn ghost sigbtn no-print" id="sigBtn">Tap to sign</button></span><span class="d" id="sigDate" style="display:none"></span></div>
 
       <div class="qrs">
         <div class="qr"><img id="qrFinImg" alt="Financing QR"><div class="qt"><b>No credit needed</b><b>financing</b><span>Scan &amp; get up to $5000</span></div></div>
@@ -939,7 +940,7 @@ function buildPDF(k){
   const tb=y;doc.rect(L,tb,R-L,TH);doc.line(cQ,tb,cQ,tb+TH);doc.line(cA,tb,cA,tb+TH);
   trs.forEach((r,i)=>{const yy=tb+i*th;if(i)doc.line(cQ,yy,R,yy);const b=r[0]==='TOTAL'||r[0]==='BALANCE';
     font('bold',9.5);txt(r[0],cQ+6,yy+th/2+3.4*k);font(b?'bold':'normal',9.5);txt(r[1],R-6,yy+th/2+3.4*k,{align:'right'})});
-  let lgW=200,lgH=lgW*250/700;if(lgH>TH-6){lgH=TH-6;lgW=lgH*700/250}
+  let lgW=200,lgH=lgW/(IMG.logo2AR||2.8);if(lgH>TH-6){lgH=TH-6;lgW=lgH*700/250}
   doc.addImage(IMG.logo2,'JPEG',(L+cQ)/2-lgW/2,tb+(TH-lgH)/2,lgW,lgH);
   y=tb+TH+12*k;
 
@@ -950,9 +951,8 @@ function buildPDF(k){
   plines.forEach(pl=>{txt('•',L,y);txt(pl,L+10,y,{lineHeightFactor:lh/(6.6*k)});y+=pl.length*lh+1.5*k});
   // signature
   y+=5*k;font('bold',8.5);txt('I have read and understood the store policy and agree with it.',L,y);y+=(sig?32:20)*k;
-  txt("Customer's Signature:",L,y);doc.setLineWidth(1);const sx=L+105*k;doc.line(sx,y+1,L+360,y+1);txt('Date:',L+380,y);doc.line(L+380+27*k,y+1,R,y+1);
+  txt("Customer's Signature:",L,y);doc.setLineWidth(1);const sx=L+105*k;doc.line(sx,y+1,R,y+1);
   if(sig){let sh=28*k,sw=sh*sig.w/sig.h;if(sw>240){sw=240;sh=sw*sig.h/sig.w}doc.addImage(sig.url,'PNG',sx+4,y-sh+2,sw,sh)}
-  if(sigDate){font('normal',9.5);txt(sigDate,L+380+31*k,y-2)}
   const endY=y+8;
 
   // footer QR codes, anchored to bottom
